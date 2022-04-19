@@ -1,0 +1,180 @@
+
+Private Sub hideFields_Click()
+
+    Columns("I:K").Hidden = True
+
+End Sub
+
+Private Sub unhideFields_Click()
+
+    Columns("I:K").Hidden = False
+
+End Sub
+
+Private Sub clearButton_Click()
+
+    For Counter = 5 To 999
+    
+    Set scanSNCell = Worksheets("Sheet1").Cells(Counter, 9)
+    Set scanHDCell = Worksheets("Sheet1").Cells(Counter, 10)
+    Set onlineCell = Worksheets("Sheet1").Cells(Counter, 11)
+    
+    scanSNCell.Value = ""
+    scanSNCell.Interior.ColorIndex = 0
+    scanHDCell.Value = ""
+    scanHDCell.Interior.ColorIndex = 0
+    onlineCell.Value = ""
+    onlineCell.Interior.ColorIndex = 0
+    
+    Next Counter
+
+End Sub
+
+Private Sub online_button_Click()
+
+    Dim myCSVFileName As String
+    Dim myWB As Workbook
+    Dim tempWB As Workbook
+    Dim rngToSave As Range
+    
+    MsgBox ("Exporting current computer name list for Powershell.")
+    
+    Application.DisplayAlerts = False
+    On Error GoTo err
+    
+    Set myWB = ThisWorkbook
+    myCSVFileName = myWB.Path & "\csv\inventory.csv"
+    
+    Set rngToSave = Range("F4:F999")
+    rngToSave.Copy
+    
+    Set tempWB = Application.Workbooks.Add(1)
+    With tempWB
+        .Sheets(1).Range("A1").PasteSpecial xlPasteValues
+        .SaveAs Filename:=myCSVFileName, FileFormat:=xlCSV, CreateBackup:=False
+        .Close
+    End With
+err:
+    Application.DisplayAlerts = True
+    
+    Dim wsh As Object
+    Set wsh = VBA.CreateObject("WScript.Shell")
+    Dim waitOnReturn As Boolean: waitOnReturn = True
+    Dim windowStyle As Integer: windowStyle = 1
+    Dim errorCode As Integer
+    
+    wsh.Run "POWERSHELL.exe " & "C:\Scripts\Inventory\TestConnections.ps1", windowStyle, waitOnReturn
+    
+    MsgBox ("Importing results to spreadsheet.")
+    
+    Set Ws = myWB.Sheets("Sheet1")
+    With Ws.QueryTables.Add(Connection:="TEXT;" & "C:\Scripts\Inventory\csv\status.csv", Destination:=Ws.Range("K5"))
+        .TextFileParseType = xlDelimited
+        .TextFileCommaDelimiter = True
+        .Refresh
+    End With
+    
+    For Counter = 5 To 999
+    
+    Set onlineCell = Ws.Cells(Counter, 11)
+    
+    If onlineCell.Value = "ONLINE" Then
+        onlineCell.Interior.Color = RGB(146, 208, 80)
+    ElseIf onlineCell.Value = "OFFLINE" Then
+        onlineCell.Interior.Color = RGB(255, 0, 0)
+    End If
+    
+    Next Counter
+
+End Sub
+
+
+Private Sub scanButton_Click()
+
+    Dim myCSVFileName As String
+    Dim myWB As Workbook
+    Dim tempWB As Workbook
+    Dim rngToSave As Range
+    
+    MsgBox ("Exporting current computer name list for Powershell.")
+    
+    Application.DisplayAlerts = False
+    On Error GoTo err
+    
+    Set myWB = ThisWorkbook
+    myCSVFileName = myWB.Path & "\csv\inventory.csv"
+    
+    Set rngToSave = Range("F4:F999")
+    rngToSave.Copy
+    
+    Set tempWB = Application.Workbooks.Add(1)
+    With tempWB
+        .Sheets(1).Range("A1").PasteSpecial xlPasteValues
+        .SaveAs Filename:=myCSVFileName, FileFormat:=xlCSV, CreateBackup:=False
+        .Close
+    End With
+err:
+    Application.DisplayAlerts = True
+    
+    Dim wsh As Object
+    Set wsh = VBA.CreateObject("WScript.Shell")
+    Dim waitOnReturn As Boolean: waitOnReturn = True
+    Dim windowStyle As Integer: windowStyle = 1
+    Dim errorCode As Integer
+    
+    wsh.Run "POWERSHELL.exe " & "C:\Scripts\Inventory\InventoryScript.ps1", windowStyle, waitOnReturn
+    
+    MsgBox ("Importing results to spreadsheet.")
+    
+    Set Ws = myWB.Sheets("Sheet1")
+    With Ws.QueryTables.Add(Connection:="TEXT;" & "C:\Scripts\Inventory\csv\boxsnlist.csv", Destination:=Ws.Range("I5"))
+        .TextFileParseType = xlDelimited
+        .TextFileCommaDelimiter = True
+        .Refresh
+    End With
+    With Ws.QueryTables.Add(Connection:="TEXT;" & "C:\Scripts\Inventory\csv\hddlist.csv", Destination:=Ws.Range("J5"))
+        .TextFileParseType = xlDelimited
+        .TextFileCommaDelimiter = True
+        .Refresh
+    End With
+    
+    For Counter = 5 To 999
+    
+    Set hddCell = Ws.Cells(Counter, 8)
+    Set hddScanCell = Ws.Cells(Counter, 10)
+    Set snCell = Ws.Cells(Counter, 7)
+    Set snScanCell = Ws.Cells(Counter, 9)
+    
+    If hddCell.Value = hddScanCell.Value Then
+        hddScanCell.Interior.Color = RGB(146, 208, 80)
+    Else
+        hddScanCell.Interior.Color = RGB(255, 255, 0)
+    End If
+    
+    If snCell.Value = snScanCell.Value Then
+        snScanCell.Interior.Color = RGB(146, 208, 80)
+    Else
+        snScanCell.Interior.Color = RGB(255, 255, 0)
+    End If
+    
+    If hddScanCell.Value = "ERROR" Then
+        hddScanCell.Interior.Color = RGB(255, 0, 0)
+    End If
+    
+    If snScanCell.Value = "ERROR" Then
+        snScanCell.Interior.Color = RGB(255, 0, 0)
+    End If
+    
+    If hddScanCell.Value = "OFFLINE" Then
+        hddScanCell.Interior.Color = RGB(255, 0, 0)
+    End If
+        
+    If snScanCell.Value = "OFFLINE" Then
+        snScanCell.Interior.Color = RGB(255, 0, 0)
+    End If
+    
+    Next Counter
+    
+    MsgBox ("Complete! Cells from the network scan will be colored as follows: GREEN(matches inventory), YELLOW(does not match inventory), RED(data could not be retrieved).")
+    
+End Sub
