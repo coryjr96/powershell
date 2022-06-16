@@ -1,4 +1,4 @@
-What you will find in this Powershell directory is mainly an inventory macro-enabled spreadsheet that I put together. Every quarter, our department has to conduct an inventory audit to ensure everything is still under our custody as well as verify serial number accuracy. Drives are classified so they are also inventoried.
+What you will find in this Powershell directory is mainly an inventory macro-enabled spreadsheet that I put together. Every quarter, our department has to conduct an inventory audit to ensure everything is still under our custody as well as verify serial number accuracy. Drives are also inventoried.
 
 With that in mind, I created buttons, wrote VBA in Excel, and wrote Powershell scripts, all in conjunction for the following functions:
 
